@@ -1,0 +1,17 @@
+version: '2.4'
+services:
+  web:
+    container_name: "flask_demo"
+    # build: .
+    image: "${FLASKDEMO_IMAGE}"
+    ports:
+    - "5000:5000"
+    # volumes:
+    # - .:/code
+    # - logvolume01:/var/log
+    links:
+      - redis
+  redis:
+    image: redis
+# volumes:
+#   logvolume01: {}

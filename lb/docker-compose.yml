@@ -1,0 +1,25 @@
+version: '2.4'
+services:
+  lb:
+    container_name: "wiprocure_lb"
+    image: "${WEBAPP_IMAGE}"
+    cpu_percent: 50
+    mem_limit: 2048m
+    command: ["sit-pm2"]
+    ports:
+     - "443:3000"
+    # restart: on-failure:3
+    restart: always
+    volumes:
+      - "/etc/localtime:/etc/localtime"
+      # 記得要放憑證到vm的/etc/ssl
+      - "/etc/ssl:/usr/local/wi-procurement/ssl"
+      - "/home/swpc-user/WiEProcureStatic/uploadImage:/usr/local/wi-procurement/server/utils/uploadImage"
+      - "/home/swpc-user/WiEProcureStatic/logs:/usr/local/wi-procurement/logs"
+      - "/home/swpc-user/WiEProcureV/ga:/usr/local/wi-procurement/static/ga"
+    environment:
+      WISTRONAD: 10.37.31.16
+      DB_MIGRATE_USERNAME: swpc-user
+      << : *default-environment
+    env_file:
+      - ${ENV_FILE}

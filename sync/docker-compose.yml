@@ -1,0 +1,86 @@
+version: '2.4'
+x-environment: &default-environment
+  POSTGRES_PORT: 5432
+  POSTGRES_DB: docker
+  POSTGRES_USER: swpc-user
+  POSTGRES_SCHEMA: wiprocurement
+services:
+  dbSync:
+    container_name: "wiprocure_db_sync"
+    image: "${DBSYNC_IMAGE}"
+    mem_limit: 512m
+    cpu_percent: 10
+    command: ["prd", "10.34.208.14", "TPEHRPS.WISTRON.COM"]
+    # command: 
+    #   - "prd '10.34.208.14' 'TPEHRPS.WISTRON.COM'"
+    ports:
+     - "3009:3009"
+    # restart: on-failure:3
+    restart: always
+    volumes:
+      - "/etc/localtime:/etc/localtime"
+      - "/home/swpc-user/db-sync/logs:/usr/local/db-sync/logs"
+    environment:
+      DB_SYNC_PORT: 3009 
+      CBGDB_USER: EPUR
+      CBGDB_PASSWORD: epur2018 
+      PLMDB_USER: EXTDATAUSER 
+      PLMDB_PASSWORD: extdatauser 
+      FINANCEDB_USER: BIEPROC 
+      FINANCEDB_PASSWORD: Ep!201809
+      HRDB_USER: PRCRMNT2018 
+      HRDB_PASSWORD: PRCRMNT2018 
+      # HRDB_IP: 10.34.208.14
+      HRDB_HOST: TPEHRPS.WISTRON.COM
+      HRDB_PORT: 1688
+      HRDB_SID: PROD
+      FINANCEDB_HOST: 10.37.32.16
+      FINANCEDB_PORT: 1523
+      FINANCEDB_SID: BIDBP
+      << : *default-environment
+    env_file:
+      - ${ENV_FILE}
+  ftp:
+    container_name: "wiprocure_ftp"
+    image: "${FTP_IMAGE}"
+    mem_limit: 512m
+    cpu_percent: 10
+    # restart: on-failure:3
+    restart: always
+    env_file:
+      - ${ENV_FILE}
+    environment: 
+      FTP_USER: epuser
+      FTP_PASS: eppw
+      PASV_MIN_PORT: 21100
+      PASV_MAX_PORT: 21110
+      # PASV_ADDRESS: "$${FTP_HOST}"
+    volumes:
+      - "/etc/localtime:/etc/localtime"
+      - "/project/ftp:/home/vsftpd"
+    ports:
+      - "20:20"
+      - "21:21"
+      - "21100-21110:21100-21110"
+  bwMrp:
+    container_name: "wiprocure_bw_mrp"
+    image: "${BWMRP_IMAGE}"
+    mem_limit: 512m
+    cpu_percent: 10
+    # restart: on-failure:3
+    restart: always
+    volumes:
+      - "/etc/localtime:/etc/localtime"
+      - "/project/ftp/epuser:/bw-mrp/mrp"
+    environment:
+      FTP_USER: epuser
+      FTP_PATH: mrp
+      << : *default-environment
+    depends_on:
+      - "ftp"
+    env_file:
+      - ${ENV_FILE}
+networks:
+  default:
+    external:
+      name: web_wiprocure

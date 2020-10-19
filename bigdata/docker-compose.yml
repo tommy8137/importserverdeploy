@@ -1,0 +1,12 @@
+version: '2.4'
+services:
+  lpp:
+    container_name: "wiprocure_lpp"
+    image: "${LPP_IMAGE}"
+    restart: always
+    ports:
+     - "${HOST_LPP_PORT}:8004"
+    volumes:
+      - "/etc/localtime:/etc/localtime"
+    env_file:
+      - ${ENV_FILE}

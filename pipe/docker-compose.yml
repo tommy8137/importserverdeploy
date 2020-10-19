@@ -1,0 +1,92 @@
+version: '2.4'
+x-environment: &default-environment
+  POSTGRES_PORT: 5432
+  POSTGRES_DB: docker
+  POSTGRES_USER: swpc-user
+  POSTGRES_SCHEMA: wiprocurement
+  KAFKA_PORT: 9092
+  # NODE_ENV: ${DATAPROCESS_ENV}
+  # SAVE_MESSAGE: 'false'
+x-common-kafka-template: &common-kafka-template
+  image: "${DATA_PROCESS_IMAGE}"
+  # cpu_percent: 16
+  # mem_limit: 512m
+  # restart: on-failure:3
+  restart: always
+  volumes:
+    - "/etc/localtime:/etc/localtime"
+    - "/home/swpc-user/dataprocess/Message:/kafka-client/Message"
+    - "/home/swpc-user/dataprocess/back:/kafka-client/back"
+    - "/home/swpc-user/dataprocess/logs:/kafka-client/logs"
+  env_file:
+    - ${ENV_FILE}
+services:
+  kafka_exchange_rate:
+    cpu_percent: 16
+    mem_limit: 512m
+    container_name: "wiprocure_kafka_exchange_rate"
+    << : *common-kafka-template
+    environment:
+      TOPIC_NAME: exchange_rate
+      << : *default-environment
+  kafka_img:
+    cpu_percent: 16
+    mem_limit: 150m
+    container_name: "wiprocure_kafka_img"
+    << : *common-kafka-template
+    environment:
+      TOPIC_NAME: img
+      << : *default-environment
+  kafka_info_record:
+    cpu_percent: 16
+    mem_limit: 1800m
+    container_name: "wiprocure_kafka_info_record"
+    << : *common-kafka-template
+    environment:
+      TOPIC_NAME: info_record
+      << : *default-environment
+  kafka_po:
+    cpu_percent: 16
+    mem_limit: 1800m
+    container_name: "wiprocure_kafka_po"
+    << : *common-kafka-template
+    environment:
+      TOPIC_NAME: po
+      << : *default-environment
+  kafka_sap_outbound_mm:
+    cpu_percent: 16
+    mem_limit: 900m
+    container_name: "wiprocure_kafka_sap_outbound_mm"
+    << : *common-kafka-template
+    environment:
+      TOPIC_NAME: sap_outbound_mm
+      << : *default-environment
+  kafka_mat_master:
+    cpu_percent: 16
+    mem_limit: 900m
+    container_name: "wiprocure_kafka_mat_master"
+    << : *common-kafka-template
+    environment:
+      TOPIC_NAME: MatMaster
+      << : *default-environment
+  kafka_checker:
+    cpu_percent: 16
+    mem_limit: 512m
+    container_name: "wiprocure_kafka_checker"
+    << : *common-kafka-template
+    environment:
+      TOPIC_NAME: checker_rawdata
+      << : *default-environment
+  health_monitor:
+    container_name: "wiprocure_health_monitor"
+    image: "${HEALTH_MONITOR_IMAGE}"
+    network_mode: "host"
+    command: server
+    # restart: on-failure:3
+    restart: always
+    volumes:
+      - /etc/localtime:/etc/localtime
+    env_file:
+      - ${ENV_FILE}
+  
+# TODO NODE_ENV要吃這裡的https://gitlab.devpack.cc/e-procure/deploy/merge_requests/34/diffs server
